@@ -44,7 +44,8 @@ table_dst_year_cvr <- df_viz |>
 table_dst_year_cvr
 
 # LINE CHART 
-ggplot(
+plot_dst_year_cvr <- 
+  ggplot(
   table_dst_year_cvr,
   aes(
     x = birth_year,
@@ -85,9 +86,10 @@ ggplot(
     plot.title = element_text(face = "bold")
   )
 
+ggsave("plot_dst_year_cvr.png",
+       plot_dst_year_cvr)
 
 #### IRIS AKTIVE ####
-
 table_iris_year_cvr <- df_viz |>
   filter(
     iris_aktiv == 1,
@@ -103,6 +105,7 @@ table_iris_year_cvr <- df_viz |>
 table_iris_year_cvr
 
 # LINE CHART
+plot_iris_year_cvr <-
 ggplot(
   table_iris_year_cvr,
   aes(
@@ -147,6 +150,8 @@ ggplot(
     plot.title = element_text(face = "bold")
   )
 
+ggsave("plot_iris_year_cvr.png",
+       plot_iris_year_cvr)
 #### CVR BIRTH ENDS ####
 
 

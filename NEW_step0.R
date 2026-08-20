@@ -85,7 +85,7 @@ df_classified <-
     ),
     
     # Aldrig over 0,5 ansatte
-    inaktiv = as.integer(iris_aktiv < 0.5)
+    inaktiv = as.integer(ansatte_numeric < 0.5)
   ) |>
   ungroup()
 
