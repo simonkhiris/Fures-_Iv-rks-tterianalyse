@@ -18,6 +18,10 @@ library(tidyverse)
 conflicted::conflicts_prefer(dplyr::filter())
 library(lubridate)
 
+# Define start year of period and kommune here before you run script! #
+# Start year
+start_year <- 2019
+kommune_name <- "FURESØ"
 
 # Load data
 df_full <- readxl::read_excel("Furesø_Kommune_2019_26.xlsx", sheet = "Fuld data")
@@ -35,8 +39,8 @@ df_new <-
 # TODO: Make dynamic
 df_filtered <- 
   df_new |> 
-  filter(birth_year >= 2019) |> 
-  filter(`Kommune Name` == "FURESØ")
+  filter(birth_year >= start_year) |> 
+  filter(`Kommune Name` == kommune_name)
 
 
 ##### ONE PERIOD VERSION #####
