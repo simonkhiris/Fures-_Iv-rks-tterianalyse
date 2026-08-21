@@ -18,13 +18,75 @@ library(tidyverse)
 conflicted::conflicts_prefer(dplyr::filter())
 library(lubridate)
 
-# Define start year of period and kommune here before you run script! #
-# Start year
-start_year <- 2019
-kommune_name <- "FURESØ"
+# Reader function due to diverging data types within columns
+convert_positive_date <- function(x) {
+  x <- trimws(as.character(x))
+  
+  resultat <- as.Date(
+    rep(NA_real_, length(x)),
+    origin = "1970-01-01"
+  )
+  
+  # Excel-datonumre som 40312
+  er_excelnummer <- grepl(
+    "^\\d+(\\.\\d+)?$",
+    x
+  )
+  
+  resultat[er_excelnummer] <- as.Date(
+    as.numeric(x[er_excelnummer]),
+    origin = "1899-12-30"
+  )
+  
+  # Tekstdatoer med eller uden klokkeslæt
+  er_tekstdato <- grepl(
+    "^\\d{4}-\\d{2}-\\d{2}",
+    x
+  )
+  
+  resultat[er_tekstdato] <- as.Date(
+    substr(x[er_tekstdato], 1, 10),
+    format = "%Y-%m-%d"
+  )
+  
+  resultat
+}
 
-# Load data
-df_full <- readxl::read_excel("Furesø_Kommune_2019_26.xlsx", sheet = "Fuld data")
+
+# Excel file path
+filsti <- 
+  "Furesø_Kommune_2019_26.xlsx"
+
+# Define colnames
+kolonnenavne <- 
+  readxl::read_excel(
+  filsti,
+  sheet = "Fuld data",
+  n_max = 0
+) |>
+  names()
+
+kolonnetyper <- rep("guess", length(kolonnenavne)) # Col types
+
+kolonnetyper[kolonnenavne == "positive_date"] <- "text" # Col types
+
+# Load df
+df_raw <- readxl::read_excel(
+  filsti,
+  sheet = "Fuld data",
+  col_types = kolonnetyper,
+  guess_max = 100000
+)
+
+# Use convertion function
+df_full <- 
+  df_raw |>
+  mutate(
+    positive_date_raw = positive_date,
+    positive_date = convert_positive_date(positive_date),
+    positive_year = year(positive_date)
+  )
+
 
 # Recoding variables for downstream purposes, creation of new variables
 df_new <-
@@ -82,38 +144,6 @@ df_classified <-
   ) |>
   ungroup()
 
-
-# P-numre sensecheck
-df_sand <-
-  df_classified |> 
-  filter()
-
-pnumre_uden_positive_year <- df_classified |>
-  group_by(`P-number`) |>
-  filter(all(is.na(positive_year))) |>
-  ungroup()
-
-pnumre_uden_positive_date <- df_classified |>
-  filter(!is.na(`P-number`)) |>
-  group_by(`P-number`) |>
-  filter(all(is.na(positive_date))) |>
-  ungroup()
-
-## TODO: Slet
-
-## NB FILTERS APPLIED HERE ## TODO: Move this 'till end
-# TODO: Make dynamic
-# df_filtered <- 
-#   df_classified |> 
-  # filter(birth_year >= start_year) |>
-  # filter(`Kommune Name` == kommune_name)
-# 
-# ## NB FILTERS APPLIED HERE 
-# df_filtered_sand <-
-#   df_classified |>
-#   filter(positive_year >= start_year) |>
-#   filter(`Kommune Name` == kommune_name)
-
 #### SANDBOX ENDS ####
 
 # Export
@@ -123,7 +153,82 @@ df_classified |>
 
 #### ONE PERIOD VERSION END ####
 
-### Filter exercises to get positive ###
+### CVR numbers with more than one p-number analysis ###
 
 
+# All CVR numbers with more than one p-number
+pnumre_pr_cvr <- df_classified |>
+  filter(
+    !is.na(`CVR Number`),
+    !is.na(`P-number`)
+  ) |>
+  group_by(`CVR Number`) |>
+  summarise(
+    antal_p_numre = n_distinct(`P-number`),
+    
+    antal_company_names = n_distinct(
+      `Company Name`,
+      na.rm = TRUE
+    ),
+    
+    company_names = paste(
+      sort(unique(`Company Name`[!is.na(`Company Name`)])),
+      collapse = " | "
+    ),
+    
+    .groups = "drop"
+  ) |>
+  arrange(desc(antal_p_numre))
+
+pnumre_pr_cvr |> View()
+
+# CVR numbers with more than one p-number within the iværksætter conditions #
+
+
+pnumre_pr_cvr_year <- df_classified |>
+  filter(
+    dst_aktiv_birth == 1,
+    !is.na(`CVR Number`),
+    !is.na(`P-number`),
+    !is.na(Year),
+    birth_year %in% 2019:2026
+  ) |>
+  group_by(
+    `CVR Number`,
+    Year
+  ) |>
+  summarise(
+    antal_p_numre = n_distinct(`P-number`),
+    
+    antal_company_names = n_distinct(
+      `Company Name`,
+      na.rm = TRUE
+    ),
+    
+    company_names = paste(
+      sort(unique(`Company Name`[!is.na(`Company Name`)])),
+      collapse = " | "
+    ),
+    
+    .groups = "drop"
+  ) |>
+  arrange(
+    Year,
+    desc(antal_p_numre)
+  ) |> 
+  filter(antal_p_numre != 1)
+
+CVR_numbers_with_more_than_one_pnumber <-
+  pnumre_pr_cvr_year |> 
+  filter(antal_p_numre != 1) |> 
+  pull(`CVR Number`) |> 
+  unique()
+
+df_multiple_p <-
+  df_classified |> 
+  filter(`CVR Number` %in% CVR_numbers_with_more_than_one_pnumber) |> 
+  select(`P-number`, `CVR Number`, Year, `Company Name`)
+
+
+pnumre_pr_cvr |> View()
 
