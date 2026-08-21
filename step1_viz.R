@@ -80,13 +80,15 @@ table_iris_positive_cvr <-
 
 table_iris_positive_cvr
 
-# Inaktiv table
+
+
+
+# Inaktiv table #
+
 # Status for hvert CVR-nummer baseret på alle tilhørende P-numre
 cvr_aktiv_status <- df_classified |>
   filter(positive_value == "new_company") |> 
   filter(
-    !is.na(`CVR Number`),
-    !is.na(`P-number`)
   ) |>
   group_by(`CVR Number`) |>
   summarise(
@@ -107,9 +109,7 @@ nrow(cvr_uden_aktivt_pnummer)
 table_cvr_uden_aktivt_pnummer <-
   df_classified |>
   filter(
-    positive_value == "new_company",
-    !is.na(`CVR Number`),
-    !is.na(positive_year)
+    positive_value == "new_company"
   ) |>
   distinct(
     positive_year,
@@ -133,9 +133,7 @@ table_inaktive_enkeltmandsvirksomheder <-
   df_classified |>
   filter(
     positive_value == "new_company",
-    businesstypeCVR == "Enkeltmandsvirksomhed",
-    !is.na(`CVR Number`),
-    !is.na(positive_year)
+    businesstypeCVR == "Enkeltmandsvirksomhed"
   ) |>
   distinct(
     positive_year,

@@ -131,7 +131,7 @@ df_classified <-
     ),
     
     # Aktiv i år 0 eller 1 efter birth_year # TODO: OUT
-    dst_aktiv_birth = as.integer(
+    dst_aktiv_birth = as.integer( # THIS IS DEPRECATED
       any(
         ansatte_numeric >= 0.5 &
           time_since_birth %in% c(0, 1),
@@ -139,7 +139,7 @@ df_classified <-
       )
     ),
     
-    # Aldrig over 0,5 ansatte
+    # Aldrig over 0,5 ansatte # Todo: restructure based on step1 inactive def
     inaktiv = case_when(
       all(is.na(ansatte_numeric)) ~ 1L,
       any(ansatte_numeric >= 0.5, na.rm = TRUE) ~ 0L,
@@ -184,7 +184,7 @@ pnumre_pr_cvr <- df_classified |>
   ) |>
   arrange(desc(antal_p_numre))
 
-pnumre_pr_cvr |> View()
+pnumre_pr_cvr
 
 # CVR numbers with more than one p-number within the iværksætter conditions #
 
@@ -232,7 +232,4 @@ df_multiple_p <-
   df_classified |> 
   filter(`CVR Number` %in% CVR_numbers_with_more_than_one_pnumber) |> 
   select(`P-number`, `CVR Number`, Year, `Company Name`, positive_value)
-
-
-pnumre_pr_cvr |> View()
 
