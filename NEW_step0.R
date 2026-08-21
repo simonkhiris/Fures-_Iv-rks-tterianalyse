@@ -35,18 +35,11 @@ df_new <-
       na_if(as.character(ansatte), "Missing")) # Make ansatte workable in R, numeric for cutoffs
   )
 
-## NB FILTERS APPLIED HERE ## TODO: Move this 'till end
-# TODO: Make dynamic
-df_filtered <- 
-  df_new |> 
-  filter(birth_year >= start_year) |> 
-  filter(`Kommune Name` == kommune_name)
-
 
 ##### ONE PERIOD VERSION #####
 # Filling the positive_year with summarize to enable yearly calculations across each yearly observation
 df_filled <-
-  df_filtered |> 
+  df_new |> 
   mutate(positive_year = year(positive_date)) |> # Need positive var in year format
   group_by(`P-number`) |> # Group by p-number to fill p-number wise
   fill(positive_year, .direction = "downup") |>  # This gives all observations of the p-number the same positive value year
@@ -89,6 +82,40 @@ df_classified <-
   ) |>
   ungroup()
 
+
+# P-numre sensecheck
+df_sand <-
+  df_classified |> 
+  filter()
+
+pnumre_uden_positive_year <- df_classified |>
+  group_by(`P-number`) |>
+  filter(all(is.na(positive_year))) |>
+  ungroup()
+
+pnumre_uden_positive_date <- df_classified |>
+  filter(!is.na(`P-number`)) |>
+  group_by(`P-number`) |>
+  filter(all(is.na(positive_date))) |>
+  ungroup()
+
+## TODO: Slet
+
+## NB FILTERS APPLIED HERE ## TODO: Move this 'till end
+# TODO: Make dynamic
+# df_filtered <- 
+#   df_classified |> 
+  # filter(birth_year >= start_year) |>
+  # filter(`Kommune Name` == kommune_name)
+# 
+# ## NB FILTERS APPLIED HERE 
+# df_filtered_sand <-
+#   df_classified |>
+#   filter(positive_year >= start_year) |>
+#   filter(`Kommune Name` == kommune_name)
+
+#### SANDBOX ENDS ####
+
 # Export
 # Write RDS to export for viz step
 df_classified |> 
@@ -96,6 +123,7 @@ df_classified |>
 
 #### ONE PERIOD VERSION END ####
 
+### Filter exercises to get positive ###
 
 
 
