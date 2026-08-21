@@ -140,8 +140,12 @@ df_classified <-
     ),
     
     # Aldrig over 0,5 ansatte
-    inaktiv = as.integer(ansatte_numeric < 0.5)
-  ) |>
+    inaktiv = case_when(
+      all(is.na(ansatte_numeric)) ~ 1L,
+      any(ansatte_numeric >= 0.5, na.rm = TRUE) ~ 0L,
+      TRUE ~ 1L
+    )
+    ) |>
   ungroup()
 
 #### SANDBOX ENDS ####
