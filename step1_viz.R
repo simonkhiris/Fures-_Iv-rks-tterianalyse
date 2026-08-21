@@ -172,7 +172,6 @@ table_dst_positive_cvr <-
   df_classified |>
   filter(
     positive_value == "new_company",
-    `Kommune Name` == kommune_name,
     dst_aktiv_positive == 1,
   ) |>
   mutate(
@@ -201,7 +200,6 @@ table_iris_positive_cvr <-
   df_classified |>
   filter(
     positive_value == "new_company",
-    `Kommune Name` == kommune_name,
     iris_aktiv == 1,
   ) |>
   mutate(
@@ -223,28 +221,6 @@ table_iris_positive_cvr <-
   )
 
 table_iris_positive_cvr
-
-
-# Business type graph
-
-# Tabel på CVR-niveau, opdelt efter business type
-table_business_type_cvr <-
-  df_classified |>
-  filter(
-    positive_value == "new_company",
-    businesstypeCVR == "Enkeltmandsvirksomhed"
-  ) |>
-  distinct(
-    positive_year,
-    `CVR Number`
-  ) |>
-  count(
-    positive_year,
-    name = "antal_enkeltmandsvirksomheder"
-  ) |>
-  arrange(positive_year)
-
-table_business_type_cvr
 
 # Inaktive tabel
 table_inaktiv_positive_cvr <- 
@@ -270,4 +246,25 @@ table_inaktiv_positive_cvr <-
 
 table_inaktiv_positive_cvr
 
+# Inaktiv enkeltmands
+
+# Tabel på CVR-niveau, opdelt efter business type
+table_business_type_cvr <-
+  df_classified |>
+  filter(
+    positive_value == "new_company",
+    inaktiv == 1,
+    businesstypeCVR == "Enkeltmandsvirksomhed"
+  ) |>
+  distinct(
+    positive_year,
+    `CVR Number`
+  ) |>
+  count(
+    positive_year,
+    name = "intaktive_enkeltmandsvirksomheder"
+  ) |>
+  arrange(positive_year)
+
+table_business_type_cvr
 

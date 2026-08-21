@@ -130,7 +130,7 @@ df_classified <-
       )
     ),
     
-    # Aktiv i år 0 eller 1 efter birth_year
+    # Aktiv i år 0 eller 1 efter birth_year # TODO: OUT
     dst_aktiv_birth = as.integer(
       any(
         ansatte_numeric >= 0.5 &
@@ -231,7 +231,7 @@ CVR_numbers_with_more_than_one_pnumber <-
 df_multiple_p <-
   df_classified |> 
   filter(`CVR Number` %in% CVR_numbers_with_more_than_one_pnumber) |> 
-  select(`P-number`, `CVR Number`, Year, `Company Name`)
+  select(`P-number`, `CVR Number`, Year, `Company Name`, positive_value)
 
 
 pnumre_pr_cvr |> View()
