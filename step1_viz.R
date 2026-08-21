@@ -128,7 +128,6 @@ table_cvr_uden_aktivt_pnummer <-
 
 table_cvr_uden_aktivt_pnummer
 
-# Inaktiv & enkeltmandsvirksomhed
 # Inaktive CVR-numre, der er enkeltmandsvirksomheder
 table_inaktive_enkeltmandsvirksomheder <-
   df_classified |>
