@@ -80,59 +80,84 @@ table_iris_positive_cvr <-
 
 table_iris_positive_cvr
 
-# Inaktive tabel
-table_inaktiv_positive_cvr <- 
-  df_classified |>
+# Inaktiv table
+# Status for hvert CVR-nummer baseret på alle tilhørende P-numre
+cvr_aktiv_status <- df_classified |>
+  filter(positive_value == "new_company") |> 
   filter(
-    positive_value == "new_company",
-    inaktiv == 1,
+    !is.na(`CVR Number`),
+    !is.na(`P-number`)
   ) |>
-  distinct(
-    positive_year,
-    `CVR Number`,
-    positive_value
-  ) |>
-  count(
-    positive_year,
-    positive_value,
-    name = "antal_inaktive_cvr_numre"
-  ) |>
-  arrange(
-    positive_value,
-    positive_year
+  group_by(`CVR Number`) |>
+  summarise(
+    antal_p_numre = n_distinct(`P-number`),
+    har_aktivt_pnummer = any(
+      iris_aktiv == 1,
+      na.rm = TRUE
+    ),
+    .groups = "drop"
   )
 
-table_inaktiv_positive_cvr
+cvr_uden_aktivt_pnummer <- cvr_aktiv_status |>
+  filter(!har_aktivt_pnummer)
 
-# Inaktiv enkeltmands
+nrow(cvr_uden_aktivt_pnummer)
 
-# Tabel på CVR-niveau, opdelt efter business type
-table_business_type_cvr <-
+# Table for CVR's that do not have an active p-number
+table_cvr_uden_aktivt_pnummer <-
   df_classified |>
   filter(
     positive_value == "new_company",
-    inaktiv == 1,
-    businesstypeCVR == "Enkeltmandsvirksomhed"
+    !is.na(`CVR Number`),
+    !is.na(positive_year)
   ) |>
   distinct(
     positive_year,
     `CVR Number`
   ) |>
+  inner_join(
+    cvr_aktiv_status,
+    by = "CVR Number"
+  ) |>
+  filter(!har_aktivt_pnummer) |>
   count(
     positive_year,
-    name = "intaktive_enkeltmandsvirksomheder"
+    name = "antal_cvr_uden_aktivt_pnummer"
   ) |>
   arrange(positive_year)
 
-table_business_type_cvr
+table_cvr_uden_aktivt_pnummer
+
+# Inaktiv & enkeltmandsvirksomhed
+# Inaktive CVR-numre, der er enkeltmandsvirksomheder
+table_inaktive_enkeltmandsvirksomheder <-
+  df_classified |>
+  filter(
+    positive_value == "new_company",
+    businesstypeCVR == "Enkeltmandsvirksomhed",
+    !is.na(`CVR Number`),
+    !is.na(positive_year)
+  ) |>
+  distinct(
+    positive_year,
+    `CVR Number`
+  ) |>
+  inner_join(
+    cvr_aktiv_status,
+    by = "CVR Number"
+  ) |>
+  filter(!har_aktivt_pnummer) |>
+  count(
+    positive_year,
+    name = "antal_inaktive_enkeltmandsvirksomheder"
+  ) |>
+  arrange(positive_year)
+
+table_inaktive_enkeltmandsvirksomheder
 
 
 
-
-
-
-
-
+## NB This is only sanity check
 #### DST TABLE P-NUMBER LEVEL ####
 # Tabel på p-nummer-niveau, opdelt efter positive_value DST
 table_dst_positive_p_number <- 
@@ -330,52 +355,3 @@ table_iris_positive_p_number
 # ggsave("plot_iris_year_cvr.png",
 #        plot_iris_year_cvr)
 # #### CVR BIRTH ENDS ####
-
-
-
-# Status for hvert CVR-nummer baseret på alle tilhørende P-numre
-cvr_aktiv_status <- df_classified |>
-  filter(positive_value == "new_company") |> 
-  filter(
-    !is.na(`CVR Number`),
-    !is.na(`P-number`)
-  ) |>
-  group_by(`CVR Number`) |>
-  summarise(
-    antal_p_numre = n_distinct(`P-number`),
-    har_aktivt_pnummer = any(
-      iris_aktiv == 1,
-      na.rm = TRUE
-    ),
-    .groups = "drop"
-  )
-
-cvr_uden_aktivt_pnummer <- cvr_aktiv_status |>
-  filter(!har_aktivt_pnummer)
-
-nrow(cvr_uden_aktivt_pnummer)
-
-# Table for CVR's that do not have an active p-number
-table_cvr_uden_aktivt_pnummer <-
-  df_classified |>
-  filter(
-    positive_value == "new_company",
-    !is.na(`CVR Number`),
-    !is.na(positive_year)
-  ) |>
-  distinct(
-    positive_year,
-    `CVR Number`
-  ) |>
-  inner_join(
-    cvr_aktiv_status,
-    by = "CVR Number"
-  ) |>
-  filter(!har_aktivt_pnummer) |>
-  count(
-    positive_year,
-    name = "antal_cvr_uden_aktivt_pnummer"
-  ) |>
-  arrange(positive_year)
-
-table_cvr_uden_aktivt_pnummer
